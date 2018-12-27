@@ -1,5 +1,4 @@
 from bottle import route, run, template, static_file, get, post, delete, request
-from sys import argv
 import json
 from pymysql import connect, cursors
 
@@ -56,6 +55,7 @@ def add_cat():
             else:
                 sql_query = "INSERT INTO categories (name) VALUES ('{}')".format(category)
                 cursor.execute(sql_query)
+                connection.commit()
                 result["STATUS"] = 'SUCCESS'
                 result["CODE"] = 201
                 result["CAT_ID"] = cursor.lastrowid
@@ -71,14 +71,15 @@ def delete_cat(id):
     result['STATUS'] = 'ERROR'
     try:
         with connection.cursor() as cursor:
-            sql_query = "SELECT * FROM categories WHERE cat_id='{}'".format(id)
+            sql_query = "SELECT * FROM categories WHERE cat_id={}".format(id)
             cursor.execute(sql_query)
             response = cursor.fetchone()
             if not response:
                 result["MSG"] = 'Category not found'
                 result["CODE"] = 404
-            sql_query = "DELETE FROM categories WHERE cat_id='{}'".format(id)
+            sql_query = "DELETE FROM categories WHERE cat_id={}".format(id)
             cursor.execute(sql_query)
+            connection.commit()
             result["CODE"] = 201
             result["STATUS"] = 'SUCCESS'
     except:
@@ -133,6 +134,7 @@ def product():
                             " img_url='{}', category={}, favorite='{}' WHERE product_id={};"\
                             .format(title, desc, price, img_url, category, favorite, product_id)
                 cursor.execute(sql_query)
+                connection.commit()
                 result["STATUS"] = "SUCCESS"
                 result["PRODUCT_ID"] = product_id
                 result["CODE"] = 201
@@ -141,6 +143,7 @@ def product():
                 sql_query = "INSERT INTO products (title, description, price, img_url, category, favorite) " \
                             "VALUES ('{}', '{}', {}, '{}', {}, '{}')".format(title, desc, price, img_url, category, favorite)
                 cursor.execute(sql_query)
+                connection.commit()
                 result["STATUS"] = "SUCCESS"
                 result["PRODUCT_ID"] = cursor.lastrowid
                 result["CODE"] = 201
@@ -151,7 +154,97 @@ def product():
     return json.dumps(result)
 
 
+@get('/product/<id>')
+def product(id):
+    result = {}
+    try:
+        with connection.cursor() as cursor:
+            sql_query = "SELECT title FROM products WHERE product_id={}".format(id)
+            cursor.execute(sql_query)
+            if not cursor.fetchone():
+                result["STATUS"] = "ERROR"
+                result["MSG"] = 'Product not found'
+                result["CODE"] = 404
+            else:
+                sql_query = "SELECT category, description, price, title, favorite, img_url, product_id ad id" \
+                            " FROM products WHERE product_id={}".format(id)
+                cursor.execute(sql_query)
+                result["PRODUCT"] = cursor.fetchone()
+                result["STATUS"] = "SUCCESS"
+                result["CODE"] = 200
+    except:
+        result["STATUS"] = "ERROR"
+        result["CODE"] = 500
+        result["MSG"] = 'internal error'
+    print(result)
+    return json.dumps(result)
 
+
+@delete('/product/<id>')
+def delete_product(id):
+    result = {}
+    try:
+        with connection.cursor() as cursor:
+            sql_query = "SELECT title FROM products WHERE product_id={}".format(id)
+            cursor.execute(sql_query)
+            if not cursor.fetchone():
+                result["STATUS"] = "ERROR"
+                result["MSG"] = 'product not found'
+                result["CODE"] = 404
+            else:
+                sql_query = "DELETE FROM products WHERE product_id={}".format(id)
+                cursor.execute(sql_query)
+                connection.commit()
+                result["PRODUCT"] = cursor.fetchone()
+                result["STATUS"] = "SUCCESS"
+                result["CODE"] = 201
+    except:
+        result["STATUS"] = "ERROR"
+        result["CODE"] = 500
+        result["MSG"] = 'internal error'
+    return json.dumps(result)
+
+
+@get('/products')
+def products():
+    result = {}
+    try:
+        with connection.cursor() as cursor:
+            sql_query = "SELECT category, description, price, title, favorite, img_url, product_id as id FROM products"
+            cursor.execute(sql_query)
+            result["PRODUCTS"] = cursor.fetchall()
+            result["STATUS"] = "SUCCESS"
+            result["CODE"] = 200
+    except:
+        result["STATUS"] = "ERROR"
+        result["CODE"] = 500
+        result["MSG"] = 'internal error'
+    return json.dumps(result)
+
+
+@get('/category/<id>/products')
+def products(id):
+    result = {}
+    try:
+        with connection.cursor() as cursor:
+            sql_query = "SELECT title FROM products WHERE category={}".format(id)
+            cursor.execute(sql_query)
+            if not cursor.fetchone():
+                result["STATUS"] = "ERROR"
+                result["CODE"] = 404
+            else:
+                sql_query = "SELECT category, description, price, title, favorite, img_url, product_id as id" \
+                            " FROM products WHERE category={}".format(id)
+                cursor.execute(sql_query)
+                result["PRODUCTS"] = cursor.fetchall()
+                result["STATUS"] = "SUCCESS"
+                result["CODE"] = 200
+    except:
+        result["STATUS"] = "ERROR"
+        result["CODE"] = 500
+        result["MSG"] = 'internal error'
+    print(result)
+    return json.dumps(result)
 
 
 run(host='localhost', port=8080)
