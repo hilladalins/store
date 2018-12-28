@@ -11,6 +11,7 @@
   </head>
   <body>
     <header>
+        <nav id="storename" class="menu-btn clickable"><i class="fa fa-bars btn-icon" aria-hidden="true"></i>Change Store Name</nav>
         <nav id="categories" class="menu-btn clickable"><i class="fa fa-bars btn-icon" aria-hidden="true"></i>Manage Categories</nav>
         <nav id="products" class="menu-btn clickable"><i class="fa fa-gift btn-icon" aria-hidden="true"></i>Manage Products</nav>
         <nav id="goto" class="menu-btn clickable"><i class="fa fa-shopping-cart btn-icon" aria-hidden="true"></i>Go to Store</i></nav>
@@ -21,6 +22,14 @@
     </section>
     <section id="welcome-page" class="admin-page">
         <h2> Welcome to Store Admin </h2>
+    </section>
+    <section id="storename-page" class="admin-page">
+        <h2> Store Name </h2>
+        <div id="storename-holder"></div>
+        <form id="storename" >
+            <input type="text" name="name" />
+            <input type="submit" value="Change storename" />
+        </form>
     </section>
     <section id="categories-page" class="admin-page">
         <h2> Categories Manager </h2>
