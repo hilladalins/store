@@ -113,24 +113,25 @@ def product():
         desc = request.forms["desc"]
         price = request.forms["price"]
         img_url = request.forms["img_url"]
-        category = request.forms["category"]
         product_id = request.forms["id"]
         favorite = 1 if 'favorite' in request.forms else 0
-        if not title or not desc or not price or not img_url or not category:
+        if not title or not desc or not price or not img_url or 'category' not in request.forms:
             result["STATUS"] = "ERROR"
             result["MSG"] = 'missing parameters'
             result["CODE"] = 400
-        else:
-            with connection.cursor() as cursor:
-                sql_query = "SELECT * FROM categories WHERE cat_id={}".format(category)
-                cursor.execute(sql_query)
-                if not cursor.fetchone():
-                    result["STATUS"] = "ERROR"
-                    result["MSG"] = 'Category not found'
-                    result["CODE"] = 404
+            return json.dumps(result)
+        category = request.forms["category"]
+        with connection.cursor() as cursor:
+            sql_query = "SELECT * FROM categories WHERE cat_id={}".format(category)
+            cursor.execute(sql_query)
+            if not cursor.fetchone():
+                result["STATUS"] = "ERROR"
+                result["MSG"] = 'Category not found'
+                result["CODE"] = 404
+                return json.dumps(result)
         if product_id:
             with connection.cursor() as cursor:
-                sql_query = "UPDATE products SET title='{}', desc='{}', price={}," \
+                sql_query = "UPDATE products SET title='{}', description='{}', price={}," \
                             " img_url='{}', category={}, favorite='{}' WHERE product_id={};"\
                             .format(title, desc, price, img_url, category, favorite, product_id)
                 cursor.execute(sql_query)
@@ -138,6 +139,7 @@ def product():
                 result["STATUS"] = "SUCCESS"
                 result["PRODUCT_ID"] = product_id
                 result["CODE"] = 201
+                return json.dumps(result)
         else:
             with connection.cursor() as cursor:
                 sql_query = "INSERT INTO products (title, description, price, img_url, category, favorite) " \
@@ -147,6 +149,7 @@ def product():
                 result["STATUS"] = "SUCCESS"
                 result["PRODUCT_ID"] = cursor.lastrowid
                 result["CODE"] = 201
+                return json.dumps(result)
     except:
         result["STATUS"] = "ERROR"
         result["CODE"] = 500
@@ -166,7 +169,7 @@ def product(id):
                 result["MSG"] = 'Product not found'
                 result["CODE"] = 404
             else:
-                sql_query = "SELECT category, description, price, title, favorite, img_url, product_id ad id" \
+                sql_query = "SELECT category, description, price, title, favorite, img_url, product_id as id" \
                             " FROM products WHERE product_id={}".format(id)
                 cursor.execute(sql_query)
                 result["PRODUCT"] = cursor.fetchone()
@@ -176,7 +179,6 @@ def product(id):
         result["STATUS"] = "ERROR"
         result["CODE"] = 500
         result["MSG"] = 'internal error'
-    print(result)
     return json.dumps(result)
 
 
@@ -213,6 +215,7 @@ def products():
             sql_query = "SELECT category, description, price, title, favorite, img_url, product_id as id FROM products"
             cursor.execute(sql_query)
             result["PRODUCTS"] = cursor.fetchall()
+            print(request['products'])
             result["STATUS"] = "SUCCESS"
             result["CODE"] = 200
     except:
@@ -233,17 +236,18 @@ def products(id):
                 result["STATUS"] = "ERROR"
                 result["CODE"] = 404
             else:
-                sql_query = "SELECT category, description, price, title, favorite, img_url, product_id as id" \
-                            " FROM products WHERE category={}".format(id)
+                sql_query = "SELECT category, description, price, title, favorite+0-1 as favorite, img_url," \
+                            " product_id as id FROM products WHERE category={}" \
+                            " ORDER BY FIELD(favorite, '1') DESC, creation_date DESC".format(id)
                 cursor.execute(sql_query)
                 result["PRODUCTS"] = cursor.fetchall()
+
                 result["STATUS"] = "SUCCESS"
                 result["CODE"] = 200
     except:
         result["STATUS"] = "ERROR"
         result["CODE"] = 500
         result["MSG"] = 'internal error'
-    print(result)
     return json.dumps(result)
 
 
