@@ -11,6 +11,11 @@ body{
     opacity:1;
 }
 
+#store-name{
+    position: fixed;
+    top: 15%;
+}
+
 #categories{
     border: 3px red solid;
     padding: 20px;

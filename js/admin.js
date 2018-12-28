@@ -140,6 +140,19 @@ StoreAdmin.renderCategoryDropDown = function(){
 
 
 StoreAdmin.bineForms = function(){
+	var changeStoreNameForm = $("form#storename");
+	changeStoreNameForm.submit(function(e){
+		e.preventDefault();
+		var submittedForm = $(this);
+		var newStoreName = submittedForm.find("input[name='name']").val();
+		$.post("/storename",{"name":newStoreName},function(result){
+			if (result["STATUS"] == "ERROR"){
+				alert(result["MSG"]);
+			}
+		},"json");
+		return false;
+	});
+
 	var addCategoryForm = $("form#add-category");
 	addCategoryForm.submit(function(e){
 		e.preventDefault();

@@ -36,7 +36,21 @@ def images(filename):
     return static_file(filename, root='images')
 
 
-@route('/category', method='POST')
+@post('/storename')
+def storename():
+    try:
+        name = request.forms["name"]
+        with connection.cursor() as cursor:
+            sql_query = "UPDATE store_values SET store_value='{}' WHERE store_key='name'".format(name)
+            cursor.execute(sql_query)
+            connection.commit()
+            result = create_result("SUCCESS", 201)
+    except:
+        result = create_result("ERROR", 500, "Internal error")
+    return json.dumps(result)
+
+
+@post('/category')
 def add_cat():
     try:
         category = request.forms.get('name')
