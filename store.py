@@ -50,6 +50,19 @@ def storename():
     return json.dumps(result)
 
 
+@get('/storename')
+def storename():
+    result = create_result("SUCCESS", 200)
+    try:
+        with connection.cursor() as cursor:
+            sql_query = "SELECT store_value FROM store_values WHERE store_key='name'"
+            cursor.execute(sql_query)
+            result["name"] = cursor.fetchone()['store_value']
+    except:
+        result = create_result("ERROR", 500, "Internal error")
+    return json.dumps(result)
+
+
 @post('/category')
 def add_cat():
     try:

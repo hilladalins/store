@@ -2,8 +2,22 @@ var Store = {};
 
 Store.start = function(){
 	$(document).ready(function() {
+		Store.loadStoreName();
 		Store.loadCategories();
 	});
+};
+
+Store.loadStoreName = function(){
+	$.get("/storename",function(result){
+			if (result["STATUS"] == "ERROR"){
+				alert(result["MSG"]);
+			}else{
+				var storeName = result["name"];
+				var nameHolder = $("#store-name");
+				nameHolder.empty();
+				nameHolder.text(storeName)
+			}
+		},"json");
 };
 
 Store.loadCategories = function(){
